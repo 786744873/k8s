@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: hpa-api
-        image: registry.cn-hangzhou.aliyuncs.com/wyt666/hpa-api:latest
+        image: registry.cn-hangzhou.aliyuncs.com/wyt666/hpa-api:0.0.3
         resources:
           requests:
             cpu: 200m
