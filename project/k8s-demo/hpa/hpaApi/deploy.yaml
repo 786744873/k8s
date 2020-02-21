@@ -1,0 +1,60 @@
+# kubectl create namespace k8s-demo
+# kubectl apply -f deploy.yaml
+# kubectl get namespace
+# kubectl get deploy -n k8s-demo
+# kubectl get svc -n k8s-demo
+# kubectl get deploy -n k8s-demo
+# kubectl rollout status deployment/hpa-api -n k8s-demo # 查看rollout的状态
+# kubectl rollout history deployment/hpa-api -n k8s-demo # 检查Deployment升级的历史记录
+# kubectl rollout undo deployment/hpa-api -n k8s-demo --to-revision=1 # 回退到历史版本
+# kubectl delete deploy hpa-api -n k8s-demo
+# kubectl delete svc hpa-api -n k8s-demo
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hpa-api
+  namespace: k8s-demo
+  labels:
+    name: hpa-api
+spec:
+  strategy:
+    rollingUpdate:
+      maxSurge: 3
+  replicas: 5 
+  selector:
+    matchLabels:
+      name: hpa-api
+  template:
+    metadata:
+      labels:
+        name: hpa-api
+    spec:
+      containers:
+      - name: hpa-api
+        image: registry.cn-hangzhou.aliyuncs.com/wyt666/hpa-api:latest
+        resources:
+          requests:
+            cpu: 200m
+            memory: 200Mi
+          limits:
+            cpu: "1"
+            memory: 500Mi
+        ports:
+        - containerPort: 80
+        imagePullPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hpa-api
+  namespace: k8s-demo
+spec:
+  type: NodePort
+  selector:
+    name: hpa-api
+  ports:
+  - port: 80
+    targetPort: 80

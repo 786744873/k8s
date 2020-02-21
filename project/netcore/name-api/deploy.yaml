@@ -1,0 +1,96 @@
+# kubectl create namespace netcore
+# kubectl get namespace
+# kubectl get deploy -n netcore
+# kubectl get svc -n netcore
+# docker login --username=tb5228628_2012 registry.cn-hangzhou.aliyuncs.com
+# wyt123456
+# docker tag 13057686866/name-api:latest registry.cn-hangzhou.aliyuncs.com/wyt666/name-api:latest
+# docker push registry.cn-hangzhou.aliyuncs.com/wyt666/name-api:latest
+# 配置dockerconfigjson密钥
+# kubectl create secret docker-registry aliyunimagesecret --docker-server=registry.cn-hangzhou.aliyuncs.com --docker-username=tb5228628_2012 --docker-password=wyt123456 --docker-email=786744873@qq.com
+# kubectl apply -f deploy.yaml
+# kubectl delete deploy name-api -n netcore
+# kubectl delete svc name-api -n netcore
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: appsettings.name-api
+  namespace: netcore
+data:
+  appsettings.json: |
+    {
+      "Logging": {
+        "LogLevel": {
+          "Default": "Trace",
+          "Microsoft": "Warning",
+          "Microsoft.Hosting.Lifetime": "Information"
+        }
+      },
+      "AllowedHosts": "*"
+    }
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: name-api
+  namespace: netcore
+  labels:
+    name: name-api
+spec: 
+  replicas: 3
+  selector:
+    matchLabels:
+      name: name-api
+  template:
+    metadata:
+      labels:
+        name: name-api
+    spec:
+      containers:
+      - name: name-api
+        env: 
+        - name: HOSTNAME_COMMAND
+          valueFrom:
+            fieldRef: {fieldPath: metadata.name}
+        image: registry.cn-hangzhou.aliyuncs.com/wyt666/name-api:latest
+        volumeMounts: 
+        - name: appsettings # 对应 volumes中name
+          mountPath: /app/appsettings.json # 对应文件地址
+          subPath: appsettings.json # ConfigMap.data
+        ports:
+        - containerPort: 80
+        imagePullPolicy: Always # 镜像拉取策略：Always,IfNotPresent
+        livenessProbe: # 存活探针
+          httpGet:
+            path: /api/name # 存在的api
+            port: 80
+        # readinessProbe: # 就绪探针
+        #   httpGet:
+        #     path: /health  # 不存在的api
+        #     port: 80
+      imagePullSecrets:  # 本地通过Secret拉取阿里云镜像
+        - name: aliyunimagesecret
+      volumes: # 挂载 ConfigMap
+      - name: appsettings
+        configMap:
+          name: appsettings.name-api
+
+---
+
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: name-api
+  namespace: netcore
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    name: name-api

@@ -1,0 +1,56 @@
+# kubectl create namespace netcore
+# kubectl get namespace
+# kubectl get deploy -n netcore
+# kubectl get svc -n netcore
+# kubectl apply -f deploy.yaml
+# kubectl delete deploy k8s-demo -n netcore
+# kubectl delete svc k8s-demo -n netcore
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: k8s-demo
+  namespace: netcore
+  labels:
+    name: k8s-demo
+spec: 
+  replicas: 2
+  selector:
+    matchLabels:
+      name: k8s-demo
+  template:
+    metadata:
+      labels:
+        name: k8s-demo
+    spec:
+      containers:
+      - name: k8s-demo
+        image: 13057686866/k8s-demo
+        ports:
+        - containerPort: 80
+        imagePullPolicy: Always # 镜像拉取策略：Always,IfNotPresent
+        livenessProbe: # 存活探针
+          httpGet:
+            path: /api/values # 存在的api
+            port: 80
+        # readinessProbe: # 就绪探针
+        #   httpGet:
+        #     path: /health  # 不存在的api
+        #     port: 80
+
+
+
+---
+
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: k8s-demo
+  namespace: netcore
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    name: k8s-demo
