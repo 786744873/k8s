@@ -21,7 +21,7 @@ spec:
   strategy:
     rollingUpdate:
       maxSurge: 3
-  replicas: 5 
+  replicas: 1 
   selector:
     matchLabels:
       name: hpa-api
@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: hpa-api
-        image: registry.cn-hangzhou.aliyuncs.com/wyt666/hpa-api:0.0.3
+        image: registry.cn-hangzhou.aliyuncs.com/wyt666/hpa-api:0.0.6
         resources:
           requests:
             cpu: 200m
