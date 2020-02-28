@@ -1,0 +1,24 @@
+# 水平伸缩器
+# kubectl get node -n=k8s-demo
+# kubectl top nodes docker-desktop
+# while(1) {kubectl top pods -l name=hpa-api -n k8s-demo}
+
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-api
+  namespace: k8s-demo
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hpa-api
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
